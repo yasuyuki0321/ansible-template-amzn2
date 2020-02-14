@@ -1,0 +1,8 @@
+- name: install base packages
+  yum:
+    name: "{{ yum_pkg }}"
+    state: latest
+
+- name: install pyenv
+  shell: curl https://pyenv.run | bash
+

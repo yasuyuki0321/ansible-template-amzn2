@@ -1,0 +1,2 @@
+yum_pkg:
+  - git

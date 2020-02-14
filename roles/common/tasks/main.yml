@@ -1,0 +1,37 @@
+- name: update all packages
+  yum:
+    name: "*"
+    state: latest
+
+- name: install base packages
+  yum:
+    name: "{{ yum_pkg }}"
+    state: latest
+
+- name: check tizezone
+  shell: timedatectl | grep "Time zone" | grep "Asia/Tokyo"
+  ignore_errors: yes
+  register: result
+
+- name: set zone
+  command: timedatectl set-timezone "Asia/Tokyo"
+  when:
+    - result is failed
+
+- name: comment out default ntp server
+  replace:
+    path: /etc/chrony.conf
+    regexp: '^server '
+    replace: '# server '
+
+- name: add amazon time sync server
+  lineinfile:
+    path: /etc/chrony.conf
+    insertafter: '# server 3.'
+    line: "{{ item }}"
+  with_items:
+    -  pool 2.amazon.pool.ntp.org iburst
+    -  server 169.254.169.123 prefer iburst minpoll 4 maxpoll 4
+  notify: restart_chrony
+
+- name: change logrotate.conf
